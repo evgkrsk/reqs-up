@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install packages
+      run: apk --update --no-cache add upx
     - name: Install dependencies
       run: shards install
     - name: Run ameba
@@ -25,4 +27,38 @@ jobs:
     - name: Run tests
       run: crystal spec
     - name: Build
-      run: shards build --release --static
+      run: shards build --release --static --stats --progress --no-debug
+    - name: Strip
+      run: strip bin/reqs-up && upx -9 bin/reqs-up
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: reqs-up-linux-static
+        path: ./bin/reqs-up
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: ./artifacts
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Attach linux binary
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/reqs-up-linux-static/reqs-up
+        asset_name: reqs-up-linux-static
+        asset_content_type: application/binary

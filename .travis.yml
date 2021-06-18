@@ -1,0 +1,16 @@
+# -*- mode: yaml; mode: view -*-
+
+language: crystal
+
+crystal:
+  - latest
+
+cache: shards
+
+install:
+  - shards install
+
+script:
+  - crystal bin/ameba.cr
+  - crystal tool format --check
+  - crystal spec

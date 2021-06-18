@@ -1,0 +1,12 @@
+.cache
+.gitignore
+.gitlab-ci.yml
+.kube
+.helm
+.git
+docker-compose*
+.yamllint
+.eslintrc.yml
+bin/reqs-up
+bin/reqs-up.dwarf
+bin/ameba

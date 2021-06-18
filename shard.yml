@@ -1,0 +1,21 @@
+name: reqs-up
+version: 0.0.1
+
+authors:
+  - Evgenii Tereshkov <evg.krsk@gmail.com>
+
+crystal: 1.0.0
+
+license: GPL3+
+
+targets:
+  reqs-up:
+    main: src/main.cr
+
+executables:
+  - reqs-up
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 0.14.3

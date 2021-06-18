@@ -1,0 +1,15 @@
+/doc/
+/lib/
+/.crystal/
+/.shards/
+/.vscode/
+/tmp/
+.env
+.encryption_key
+.DS_Store
+/node_modules
+/.idea
+/public/dist
+/bin/reqs-up
+/bin/reqs-up.dwarf
+/bin/ameba

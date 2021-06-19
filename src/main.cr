@@ -1,6 +1,5 @@
 #!/usr/bin/env crystal
-require "semantic_version"
-require "yaml"
+# -*- mode: crystal; mode: view -*-
 require "option_parser"
 
 dryrun = false
@@ -16,5 +15,8 @@ OptionParser.parse do |parser|
   end
   parser.invalid_option do |flag|
     abort("ERROR: #{flag} is not a valid option.\n#{parser}")
+  end
+  parser.missing_option do |flag|
+    abort("ERROR: #{flag} is missing something.\n#{parser}")
   end
 end

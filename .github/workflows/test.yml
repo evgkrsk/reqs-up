@@ -33,4 +33,4 @@ jobs:
     - name: Run tests
       run: crystal spec --order=random --error-on-warnings
     - name: Build
-      run: shards build --stats --progress
+      run: shards build --stats --progress --local

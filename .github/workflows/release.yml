@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: shards install --production
     - name: Build
-      run: shards build --release --static --stats --progress --no-debug
+      run: shards build --release --static --stats --progress --no-debug --local --production
     - name: Strip
       run: strip bin/reqs-up && upx -9 bin/reqs-up
     - name: Upload a Build Artifact
@@ -41,7 +41,7 @@ jobs:
     - name: Install dependencies
       run: shards install --production
     - name: Build the binary
-      run: shards build --release --stats --progress --no-debug
+      run: shards build --release --stats --progress --no-debug --local --production
     - name: Compress binary
       run: upx -9 bin/reqs-up
     - name: Upload a Build Artifact

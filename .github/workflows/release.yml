@@ -1,31 +1,24 @@
-name: Crystal CI
+name: Release workflow
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  build-linux-static:
 
     runs-on: ubuntu-latest
 
     container:
-      image: crystallang/crystal:1.0.0-alpine
+      image: crystallang/crystal:latest-alpine
 
     steps:
     - uses: actions/checkout@v2
     - name: Install packages
       run: apk --update --no-cache add upx
     - name: Install dependencies
-      run: shards install
-    - name: Run ameba
-      run: crystal bin/ameba.cr
-    - name: Check format
-      run: crystal tool format --check
-    - name: Run tests
-      run: crystal spec
+      run: shards install --production
     - name: Build
       run: shards build --release --static --stats --progress --no-debug
     - name: Strip
@@ -35,8 +28,30 @@ jobs:
       with:
         name: reqs-up-linux-static
         path: ./bin/reqs-up
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Crystal
+      uses: crystal-lang/install-crystal@v1
+    - name: Install packages
+      run: brew install upx
+    - name: Install dependencies
+      run: shards install --production
+    - name: Build the binary
+      run: shards build --release --stats --progress --no-debug
+    - name: Compress binary
+      run: upx -9 bin/reqs-up
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: reqs-up-macos
+        path: ./bin/reqs-up
+
   release:
-    needs: [build]
+    needs: [build-linux-static, build-macos]
     runs-on: ubuntu-latest
     steps:
     - name: Download artifacts
@@ -61,4 +76,13 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/reqs-up-linux-static/reqs-up
         asset_name: reqs-up-linux-static
+        asset_content_type: application/binary
+    - name: Attach macOS binary
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/reqs-up-macos/reqs-up
+        asset_name: reqs-up-macos
         asset_content_type: application/binary

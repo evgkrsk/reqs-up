@@ -24,14 +24,11 @@ module ReqsUp
       @yaml = YAML.parse(@file.gets_to_end)
       @yaml.as_a.each do |y|
         Log.debug { "Req: #{y}" }
-        if y["scm"]?
-          if y["scm"] != "git"
-            Log.error { "ERROR: Unsupported SCM: #{y["scm"]}, skipping" }
-          else
-            @reqs << GitReq.new(y)
-          end
-        else
+        case y["scm"]?
+        when Nil, "git"
           @reqs << GitReq.new(y)
+        else
+          Log.error { "ERROR: Unsupported SCM: #{y["scm"]}, skipping" }
         end
       end
       Log.debug { "Reqs: #{@reqs}" }
@@ -39,7 +36,7 @@ module ReqsUp
 
     # Save object to *dest* File
     def save!(dest)
-      Nil                       # TODO
+      Nil # TODO
     end
   end
 
@@ -55,13 +52,13 @@ module ReqsUp
     def initialize(req : YAML::Any)
       @src = req["src"].as_s
       if req["name"]?
-           @name = req["name"].as_s
+        @name = req["name"].as_s
       end
       if req["version"]?
-           @version = req["version"].as_s
+        @version = req["version"].as_s
       end
       if req["scm"]?
-           @scm = req["scm"].as_s
+        @scm = req["scm"].as_s
       end
     end
 
@@ -82,6 +79,5 @@ module ReqsUp
     def versions : Tuple(String)
       {"1.0.0", "main", "master", "1.1.0", "2.0.1"} # TODO: implement versions fetch
     end
-
   end
 end

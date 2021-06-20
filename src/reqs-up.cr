@@ -14,8 +14,6 @@ module ReqsUp
   # Describes requirements.yaml object
   class Requirements
     include YAML::Serializable
-    # number of Req-s in Requirements
-    class_getter number : Int32 = 0
     # All requirements
     getter reqs : Array(Req) = [] of Req
     # raw yaml content
@@ -23,7 +21,6 @@ module ReqsUp
 
     # Initialize requirements object from *file* object
     def initialize(@file : File)
-      @@number += 1
       @yaml = YAML.parse(@file.gets_to_end)
       @yaml.as_a.each do |y|
         Log.debug { "Req: #{y}" }

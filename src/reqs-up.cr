@@ -13,14 +13,22 @@ module ReqsUp
 
   # Describes requirements.yaml object
   class Requirements
+    include YAML::Serializable
     class_getter number : Int32 = 0 # number of Req-s in Requirements
-    # getter reqs : Tuple(Req)
+    getter reqs : Array(Req)
+    getter yaml : YAML::Any
 
     # Initialize requirements object from *file* object
 
     def initialize(@file : File)
       @@number += 1
+      @reqs = [] of Req
       # TODO: implement loading from YAML to reqs
+      @yaml = YAML.parse(@file.gets_to_end)
+      # p @yaml.as_a
+      # @yaml.each do |y|
+      #   @reqs << Req.new(y["src"])
+      # end
     end
 
     def save!(dest)
@@ -30,6 +38,7 @@ module ReqsUp
 
   # Requirement skeleton
   abstract class Req
+    include YAML::Serializable
     property src : String
     property name : String
     property version : String = "master"

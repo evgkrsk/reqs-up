@@ -2,18 +2,18 @@
 # -*- mode: crystal; mode: view -*-
 require "option_parser"
 require "./reqs-up"
+require "yaml"
 
 dryrun = false
-source_file = File.new("requirements.yaml")
-destination_file = source_file
+default_source_file = "requirements.yaml"
+source_file = File.new(File::NULL)
 
 OptionParser.parse do |parser|
   parser.banner = "Usage: #{PROGRAM_NAME} [arguments]"
   parser.on("-n", "--dry-run", "Output result YAML to stdout") {
     dryrun = true
-    destination_file = STDOUT
   }
-  parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{source_file.path}") { |file| source_file = File.new(file) }
+  parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{default_source_file}") { |file| default_source_file = file }
   parser.on("-h", "--help", "Show this help") do
     puts parser
     exit
@@ -26,8 +26,21 @@ OptionParser.parse do |parser|
   end
 end
 
+if source_file.path == File::NULL
+  begin
+    source_file = File.new(default_source_file)
+  rescue File::NotFoundError
+    abort("ERROR: #{default_source_file} not found")
+  end
+end
+
 reqs = ReqsUp::Requirements.new(source_file)
 # reqs.each do |req|
 #   req.update
 # end
-reqs.save!(destination_file)
+
+if dryrun
+  puts YAML.dump(reqs.yaml)
+else
+  reqs.save!(source_file)
+end

@@ -14,25 +14,44 @@ module ReqsUp
   # Describes requirements.yaml object
   class Requirements
     class_getter number : Int32 = 0 # number of Req-s in Requirements
-    getter reqs : Array(Req)
+    # getter reqs : Array(Req)
 
     # Initialize requirements object from *file* object
+
     def initialize(@file : File)
       @@number += 1
       # TODO: implement loading from YAML to reqs
+    end
+
+    def save!(dest)
+      Nil
     end
   end
 
   # Requirement skeleton
   abstract class Req
     property src : String
-    property name : String # TODO: initialize if undefined
+    property name : String
     property version : String = "master"
     getter scm : String = "git"
 
     def initialize(src : String, **attrs)
-      # TODO: load attributes
+      @src = src
+      if attrs.has_key?(:name)
+        @name = attrs[:name]
+      else
+        @name = self.get_name
+      end
+      if attrs.has_key?(:version)
+        @version = attrs[:version]
+      end
+      if attrs.has_key?(:scm)
+        @scm = attrs[:scm]
+      end
     end
+
+    # Determine req name from src
+    abstract def get_name
 
     # Return all available req versions
     abstract def versions
@@ -46,11 +65,17 @@ module ReqsUp
   # Requirement implementation for git
   class GitReq < Req
     @@scm = "git"
-    @versions : Array(String)
+    @name : String = "FIXME"
+
+    # @versions : Array(String)
 
     # fetch git versions
     def versions
       Nil # TODO: implement versions fetch
+    end
+
+    def get_name
+      @name
     end
   end
 end

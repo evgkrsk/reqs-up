@@ -27,6 +27,7 @@ OptionParser.parse do |parser|
 end
 
 reqs = ReqsUp::Requirements.new(source_file)
-reqs.each do |req|
-  req.update
-end
+# reqs.each do |req|
+#   req.update
+# end
+reqs.save!(destination_file)

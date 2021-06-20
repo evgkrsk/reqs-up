@@ -14,25 +14,35 @@ module ReqsUp
   # Describes requirements.yaml object
   class Requirements
     include YAML::Serializable
-    class_getter number : Int32 = 0 # number of Req-s in Requirements
-    getter reqs : Array(Req)
+    # number of Req-s in Requirements
+    class_getter number : Int32 = 0
+    # All requirements
+    getter reqs : Array(Req) = [] of Req
+    # raw yaml content
     getter yaml : YAML::Any
 
     # Initialize requirements object from *file* object
-
     def initialize(@file : File)
       @@number += 1
-      @reqs = [] of Req
-      # TODO: implement loading from YAML to reqs
       @yaml = YAML.parse(@file.gets_to_end)
-      # p @yaml.as_a
-      # @yaml.each do |y|
-      #   @reqs << Req.new(y["src"])
-      # end
+      @yaml.as_a.each do |y|
+        Log.debug { "Req: #{y}" }
+        if y["scm"]?
+          if y["scm"] != "git"
+            Log.error { "ERROR: Unsupported SCM: #{y["scm"]}, skipping" }
+          else
+            @reqs << GitReq.new(y)
+          end
+        else
+          @reqs << GitReq.new(y)
+        end
+      end
+      Log.debug { "Reqs: #{@reqs}" }
     end
 
+    # Save object to *dest* File
     def save!(dest)
-      Nil
+      Nil                       # TODO
     end
   end
 
@@ -40,27 +50,23 @@ module ReqsUp
   abstract class Req
     include YAML::Serializable
     property src : String
-    property name : String
-    property version : String = "master"
-    getter scm : String = "git"
+    property name : String | Nil
+    property version : String | Nil
+    getter scm : String | Nil
 
-    def initialize(src : String, **attrs)
-      @src = src
-      if attrs.has_key?(:name)
-        @name = attrs[:name]
-      else
-        @name = self.get_name
+    # Initialize one requirements from YAML element
+    def initialize(req : YAML::Any)
+      @src = req["src"].as_s
+      if req["name"]?
+           @name = req["name"].as_s
       end
-      if attrs.has_key?(:version)
-        @version = attrs[:version]
+      if req["version"]?
+           @version = req["version"].as_s
       end
-      if attrs.has_key?(:scm)
-        @scm = attrs[:scm]
+      if req["scm"]?
+           @scm = req["scm"].as_s
       end
     end
-
-    # Determine req name from src
-    abstract def get_name : String
 
     # Return all available req versions
     abstract def versions : Tuple(String)
@@ -73,9 +79,6 @@ module ReqsUp
 
   # Requirement implementation for git
   class GitReq < Req
-    @@scm = "git"
-    @name : String = "FIXME"
-
     # @versions : Tuple(String)
 
     # fetch git versions
@@ -83,8 +86,5 @@ module ReqsUp
       {"1.0.0", "main", "master", "1.1.0", "2.0.1"} # TODO: implement versions fetch
     end
 
-    def get_name : String
-      @name
-    end
   end
 end

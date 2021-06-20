@@ -14,7 +14,7 @@ module ReqsUp
   # Describes requirements.yaml object
   class Requirements
     class_getter number : Int32 = 0 # number of Req-s in Requirements
-    # getter reqs : Array(Req)
+    # getter reqs : Tuple(Req)
 
     # Initialize requirements object from *file* object
 
@@ -51,10 +51,10 @@ module ReqsUp
     end
 
     # Determine req name from src
-    abstract def get_name
+    abstract def get_name : String
 
     # Return all available req versions
-    abstract def versions
+    abstract def versions : Tuple(String)
 
     # Update requirement version
     def update(ver : Versions = Versions::Latest) : Nil
@@ -67,14 +67,14 @@ module ReqsUp
     @@scm = "git"
     @name : String = "FIXME"
 
-    # @versions : Array(String)
+    # @versions : Tuple(String)
 
     # fetch git versions
-    def versions
-      Nil # TODO: implement versions fetch
+    def versions : Tuple(String)
+      {"1.0.0", "main", "master", "1.1.0", "2.0.1"} # TODO: implement versions fetch
     end
 
-    def get_name
+    def get_name : String
       @name
     end
   end

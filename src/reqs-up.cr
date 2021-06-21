@@ -69,6 +69,16 @@ module ReqsUp
     # Return all available req versions
     abstract def versions : Array(String)
 
+    # Print object
+    def to_s(io : IO) : Nil
+      io << "#<" << self.class.name
+      io << ":#{@src}"
+      io << " #{@scm}"
+      io << " #{@name}"
+      io << " #{@version}"
+      io << '>'
+    end
+
     # Update requirement version, returns final version
     def update(ver : Versions = Versions::Latest) : String | Nil
       Log.debug { "Updating req #{self}" }

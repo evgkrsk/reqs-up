@@ -63,21 +63,47 @@ module ReqsUp
     end
 
     # Return all available req versions
-    abstract def versions : Tuple(String)
+    abstract def versions : Array(String)
 
-    # Update requirement version
-    def update(ver : Versions = Versions::Latest) : Nil
-      # TODO: implement version update
+    # Update requirement version, returns final version
+    def update(ver : Versions = Versions::Latest) : String | Nil
+      Log.debug { "Updating req #{self}" }
+      begin
+        semver = SemanticVersion.parse(@version.not_nil!)
+      rescue ArgumentError
+        Log.debug { "#{@version} is not semver, skipping" }
+        return
+      rescue NilAssertionError
+        Log.debug { "No version defined, skipping" }
+        return
+      end
+      self.versions.each do |v|
+        Log.debug { "Checking version candidate: #{v}" }
+        begin
+          semv = SemanticVersion.parse(v)
+        rescue ArgumentError
+          Log.debug { "#{v} is not semver, skipping" }
+          return
+        end
+        case ver
+        when Versions::Latest
+          if semv > semver
+            @version = semv.to_s
+            Log.info { "Updating req to #{@version}" }
+          end
+        else
+          Log.error { "Updating to non-latest version is not implemented" }
+          return
+        end
+      end
     end
   end
 
   # Requirement implementation for git
   class GitReq < Req
-    # @versions : Tuple(String)
-
     # fetch git versions
-    def versions : Tuple(String)
-      {"1.0.0", "main", "master", "1.1.0", "2.0.1"} # TODO: implement versions fetch
+    def versions : Array(String)
+      ["1.0.0", "main", "master", "1.1.0", "2.0.1"] # TODO: implement versions fetch
     end
   end
 end

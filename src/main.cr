@@ -40,9 +40,9 @@ if source_file.path == File::NULL
 end
 
 reqs = ReqsUp::Requirements.new(source_file)
-# reqs.each do |req|
-#   req.update
-# end
+reqs.reqs.each do |req|
+  req.update
+end
 
 if dryrun
   puts YAML.dump(reqs.reqs)

@@ -69,7 +69,8 @@ module ReqsUp
     def update(ver : Versions = Versions::Latest) : String | Nil
       Log.debug { "Updating req #{self}" }
       begin
-        semver = SemanticVersion.parse(@version.not_nil!)
+        watermark = SemanticVersion.parse(@version.not_nil!)
+        current = watermark
       rescue ArgumentError
         Log.debug { "#{@version} is not semver, skipping" }
         return
@@ -77,25 +78,31 @@ module ReqsUp
         Log.debug { "No version defined, skipping" }
         return
       end
-      self.versions.each do |v|
+      Log.debug { "Current version: #{@version}" }
+      versions.each do |v|
         Log.debug { "Checking version candidate: #{v}" }
         begin
-          semv = SemanticVersion.parse(v)
+          candidate = SemanticVersion.parse(v)
         rescue ArgumentError
           Log.debug { "#{v} is not semver, skipping" }
-          return
+          next
         end
         case ver
         when Versions::Latest
-          if semv > semver
-            @version = semv.to_s
-            Log.info { "Updating req to #{@version}" }
+          if candidate > watermark
+            watermark = candidate
+            Log.debug { "Feasible candidate: #{watermark}" }
           end
         else
           Log.error { "Updating to non-latest version is not implemented" }
           return
         end
       end
+      if watermark > current
+        @version = watermark.to_s
+        Log.info { "Updating #{@src} to #{@version}" }
+      end
+      @version
     end
   end
 
@@ -103,7 +110,7 @@ module ReqsUp
   class GitReq < Req
     # fetch git versions
     def versions : Array(String)
-      ["1.0.0", "main", "master", "1.1.0", "2.0.1"] # TODO: implement versions fetch
+      ["1.6.0", "main", "master", "4.1.0", "2.1.1"] # TODO: implement versions fetch
     end
   end
 end

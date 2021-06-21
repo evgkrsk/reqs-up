@@ -4,6 +4,8 @@ require "semantic_version"
 require "yaml"
 
 module ReqsUp
+  Log = ::Log.for(self)
+
   enum Versions
     Latest
     Minor
@@ -13,6 +15,7 @@ module ReqsUp
 
   # Describes requirements.yaml object
   class Requirements
+    Log = ::Log.for(self)
     include YAML::Serializable
     # All requirements
     getter reqs : Array(Req) = [] of Req
@@ -23,15 +26,15 @@ module ReqsUp
     def initialize(@file : File)
       @yaml = YAML.parse(@file.gets_to_end)
       @yaml.as_a.each do |y|
-        Log.debug { "Req: #{y}" }
+        Log.debug { "#{y}" }
         case y["scm"]?
         when Nil, "git"
           @reqs << GitReq.new(y)
         else
-          Log.error { "ERROR: Unsupported SCM: #{y["scm"]}, skipping" }
+          Log.error { "Unsupported SCM: #{y["scm"]}, skipping" }
         end
       end
-      Log.debug { "Reqs: #{@reqs}" }
+      Log.trace { "Reqs: #{@reqs}" }
     end
 
     # Save object to *dest* File
@@ -47,6 +50,7 @@ module ReqsUp
     property name : String | Nil
     property version : String | Nil
     getter scm : String | Nil
+    Log = ::Log.for(self)
 
     # Initialize one requirements from YAML element
     def initialize(req : YAML::Any)
@@ -80,18 +84,18 @@ module ReqsUp
       end
       Log.debug { "Current version: #{@version}" }
       versions.each do |v|
-        Log.debug { "Checking version candidate: #{v}" }
+        Log.trace { "Checking version candidate: #{v}" }
         begin
           candidate = SemanticVersion.parse(v)
         rescue ArgumentError
-          Log.debug { "#{v} is not semver, skipping" }
+          Log.trace { "#{v} is not semver, skipping" }
           next
         end
         case ver
         when Versions::Latest
           if candidate > watermark
             watermark = candidate
-            Log.debug { "Feasible candidate: #{watermark}" }
+            Log.trace { "Feasible candidate: #{watermark}" }
           end
         else
           Log.error { "Updating to non-latest version is not implemented" }
@@ -108,6 +112,8 @@ module ReqsUp
 
   # Requirement implementation for git
   class GitReq < Req
+    Log = ::Log.for(self)
+
     # fetch git versions
     def versions : Array(String)
       ["1.6.0", "main", "master", "4.1.0", "2.1.1"] # TODO: implement versions fetch

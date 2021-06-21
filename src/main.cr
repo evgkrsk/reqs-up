@@ -15,6 +15,9 @@ OptionParser.parse do |parser|
   parser.on("-d", "--debug", "Turn on debug logging") do
     Log.setup(:debug)
   end
+  parser.on("-t", "--trace", "Turn on trace logging") do
+    Log.setup(:trace)
+  end
   parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{default_source_file}") { |file| default_source_file = file }
   parser.on("-h", "--help", "Show this help") do
     puts parser

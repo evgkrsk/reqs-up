@@ -49,6 +49,7 @@ end
 
 if dryrun
   puts YAML.dump(reqs.reqs)
+  puts "..."
 else
   reqs.save!(source_file)
 end

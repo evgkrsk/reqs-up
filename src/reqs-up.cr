@@ -126,7 +126,25 @@ module ReqsUp
 
     # fetch git versions
     def versions : Array(String)
-      ["1.6.0", "main", "master", "4.1.0", "2.1.1"] # TODO: implement versions fetch
+      result : Array(String) = [] of String
+      git = Process.find_executable("git")
+      if git.nil?
+        Log.error { "Cant find git executable" }
+        return result
+      end
+      proccmd = "#{git} ls-remote --tags --refs #{@src}"
+      Log.debug { "Running \"#{proccmd}\" to fetch tags" }
+      process = Process.new(git, ["ls-remote", "--tags", "--refs", @src], output: Process::Redirect::Pipe)
+      process.output.each_line do |line|
+        tag = line.split('/')[2]
+        Log.trace { "Got tag: #{tag}" }
+        result << tag
+      end
+      status = process.wait
+      if !status.success?
+        Log.error { "Running \"#{proccmd}\" failed" }
+      end
+      result
     end
   end
 end

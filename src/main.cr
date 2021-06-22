@@ -6,18 +6,15 @@ require "yaml"
 require "log"
 
 dryrun = false
+logbackend = Log::IOBackend.new(STDERR)
 default_source_file = "requirements.yaml"
 source_file = File.new(File::NULL)
+
+Log.setup_from_env(default_level: :info, backend: logbackend)
 
 OptionParser.parse do |parser|
   parser.banner = "Usage: #{PROGRAM_NAME} [arguments]"
   parser.on("-n", "--dry-run", "Output result YAML to stdout") { dryrun = true }
-  parser.on("-d", "--debug", "Turn on debug logging") do
-    Log.setup(:debug)
-  end
-  parser.on("-t", "--trace", "Turn on trace logging") do
-    Log.setup(:trace)
-  end
   parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{default_source_file}") { |file| default_source_file = file }
   parser.on("-h", "--help", "Show this help") do
     puts parser

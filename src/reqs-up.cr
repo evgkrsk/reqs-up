@@ -39,13 +39,13 @@ module ReqsUp
 
     # Return YAML dump of internal state
     def dump
-      YAML.dump(@reqs) + "\n...\n"
+      YAML.dump(@reqs) + "...\n"
     end
 
     # Save object to *dest* File
-    def save!(dest)
-      # puts "..." to dest
-      Nil # TODO
+    def save!(dest = @file)
+      Log.debug { "Writing requirements to #{@file.path}" }
+      File.write(@file.path, dump)
     end
   end
 

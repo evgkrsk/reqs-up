@@ -47,5 +47,5 @@ end
 if dryrun
   puts requirements.dump
 else
-  requirements.save!(source_file)
+  requirements.save!
 end

@@ -1,5 +1,5 @@
-FROM crystallang/crystal:1.0.0-alpine as build-env
-ENV BUILD_PACKAGES upx
+FROM crystallang/crystal:latest-alpine as build-env
+ENV BUILD_PACKAGES upx yaml-static
 WORKDIR /app
 
 RUN apk --update --no-cache add $BUILD_PACKAGES

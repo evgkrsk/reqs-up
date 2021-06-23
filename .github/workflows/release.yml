@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install packages
-      run: apk --update --no-cache add upx
+      run: apk --update --no-cache add upx yaml-static
     - name: Install dependencies
       run: shards install --production
     - name: Build

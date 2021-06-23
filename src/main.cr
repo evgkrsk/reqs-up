@@ -39,14 +39,13 @@ if source_file.path == File::NULL
   end
 end
 
-reqs = ReqsUp::Requirements.new(source_file)
-reqs.reqs.each do |req|
+requirements = ReqsUp::Requirements.new(source_file)
+requirements.reqs.each do |req|
   req.update
 end
 
 if dryrun
-  puts YAML.dump(reqs.reqs)
-  puts "..."
+  puts requirements.dump
 else
-  reqs.save!(source_file)
+  requirements.save!(source_file)
 end

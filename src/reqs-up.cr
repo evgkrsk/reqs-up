@@ -37,8 +37,14 @@ module ReqsUp
       Log.trace { "Reqs: #{@reqs}" }
     end
 
+    # Return YAML dump of internal state
+    def dump
+      YAML.dump(@reqs) + "\n...\n"
+    end
+
     # Save object to *dest* File
     def save!(dest)
+      # puts "..." to dest
       Nil # TODO
     end
   end

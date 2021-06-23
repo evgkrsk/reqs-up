@@ -5,8 +5,10 @@ requirements.yaml files.
 It tries to fetch remote url (only git supported at moment) and bump
 up version to latest one.
 
-It is assumed that all urls is accesible or public (i.e. may be cloned
-by "git clone" run without authentication).
+It is assumed that all urls is accesible or public (i.e. may be view
+by "git ls-remote" without manual authentication).
+
+Note: all comments in YAML will be LOST (PR-s welcome)!
 
 # Examples
 

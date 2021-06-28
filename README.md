@@ -1,6 +1,6 @@
 # reqs-up
 Simple CLI utility to update semver versions in ansible's
-requirements.yaml files.
+requirements.yml files.
 
 It tries to fetch remote url (only git supported at moment) and bump
 up version to latest one.
@@ -13,12 +13,12 @@ Note: all comments in YAML will be LOST (PR-s welcome)!
 # Examples
 
 ```bash
-# reqs-up -f ./requirements.yml
+# reqs-up -f ./requirements.yaml
 ```
-- update 'requirements.yml' file in-place, bumping up versions
+- update 'requirements.yaml' file in-place, bumping up versions
 
 ```bash
 # reqs-up --dry-run
 ```
 - dry-run, print new version of YAML doc on stdout.
-  requirements.yaml assumed in current working dir.
+  requirements.yml assumed in current working dir.

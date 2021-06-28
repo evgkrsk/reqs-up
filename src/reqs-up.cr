@@ -13,7 +13,7 @@ module ReqsUp
     Patch
   end
 
-  # Describes requirements.yaml object
+  # Describes requirements.yml object
   class Requirements
     Log = ::Log.for(self)
     include YAML::Serializable

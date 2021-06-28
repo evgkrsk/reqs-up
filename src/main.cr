@@ -8,13 +8,13 @@ require "log"
 VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify }}
 dryrun = false
 logbackend = Log::IOBackend.new(STDERR)
-default_source_file = "requirements.yaml"
+default_source_file = "requirements.yml"
 source_file = File.new(File::NULL)
 
 Log.setup_from_env(default_level: :info, backend: logbackend)
 
 OptionParser.parse do |parser|
-  parser.banner = "Usage: #{PROGRAM_NAME} [arguments]\n\nUpdates requirements.yaml file in-place\n"
+  parser.banner = "Usage: #{PROGRAM_NAME} [arguments]\n\nUpdates requirements.yml file in-place\n"
   parser.on("-n", "--dry-run", "Output result YAML to stdout") { dryrun = true }
   parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{default_source_file}") { |file| default_source_file = file }
   parser.on("-h", "--help", "Show this help and exit") do

@@ -35,13 +35,11 @@ OptionParser.parse do |parser|
   end
 end
 
-if source_file.path == File::NULL
-  begin
-    source_file = File.new(default_source_file)
-  rescue File::NotFoundError
-    Log.error { "#{default_source_file} not found" }
-    exit 3
-  end
+begin
+  source_file = File.new(default_source_file)
+rescue File::NotFoundError
+  Log.error { "#{default_source_file} not found" }
+  exit 3
 end
 
 requirements = ReqsUp::Requirements.new(source_file)

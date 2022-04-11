@@ -10,3 +10,4 @@ docker-compose*
 bin/reqs-up
 bin/reqs-up.dwarf
 bin/ameba
+lib

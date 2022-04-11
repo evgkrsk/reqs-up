@@ -6,6 +6,8 @@ on:
       - '**'
   pull_request:
     branches: [master]
+  schedule:
+    - cron: "0 2 * * 5" # Every friday at 2 AM
 
 jobs:
   test:

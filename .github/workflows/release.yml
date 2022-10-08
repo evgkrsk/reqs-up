@@ -64,8 +64,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: Release ${{ github.ref }}
-        draft: true             # FIXME
-        prerelease: true        # FIXME
         tag: ${{ github.ref }}
         generateReleaseNotes: true
     - name: Attach linux binary

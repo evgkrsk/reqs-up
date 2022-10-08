@@ -1,11 +1,9 @@
 name: Test workflow
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
     branches: [master]
+  workflow_dispatch: {}
   schedule:
     - cron: "0 2 * * 5" # Every friday at 2 AM
 

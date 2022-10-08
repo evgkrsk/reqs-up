@@ -19,8 +19,7 @@ RUN set -ex && \
     upx -9 bin/reqs-up && \
     :
 
-FROM alpine:3.15
-ENV UPDATE_PACKAGES dumb-init
+FROM alpine:3.16
 ENV CRYSTAL_ENV production
 WORKDIR /app
 
@@ -28,7 +27,6 @@ COPY --from=build-env /app/bin/reqs-up /app/bin/reqs-up
 
 RUN set -ex && \
     apk --update --no-cache upgrade && \
-    apk add --upgrade $UPDATE_PACKAGES && \
     rm -rf /var/cache/apk/* && \
     :
 

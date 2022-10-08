@@ -60,14 +60,12 @@ jobs:
         path: ./artifacts
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: ncipollo/release-action@v1.11.1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Release ${{ github.ref }}
+        tag: ${{ github.ref }}
+        generateReleaseNotes: true
     - name: Attach linux binary
       uses: actions/upload-release-asset@v1
       env:

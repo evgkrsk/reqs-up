@@ -2,6 +2,7 @@ FROM crystallang/crystal:latest-alpine as build-env
 ENV BUILD_PACKAGES upx yaml-static
 WORKDIR /app
 
+# hadolint ignore=DL3018
 RUN apk --update --no-cache upgrade && \
     apk --no-cache add $BUILD_PACKAGES
 
@@ -19,7 +20,7 @@ RUN set -ex && \
     upx -9 bin/reqs-up && \
     :
 
-FROM alpine:3.16
+FROM alpine:3.17
 ENV CRYSTAL_ENV production
 WORKDIR /app
 

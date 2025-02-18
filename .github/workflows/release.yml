@@ -14,7 +14,7 @@ jobs:
       image: crystallang/crystal:latest-alpine
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install packages
       run: apk --update --no-cache add upx yaml-static
     - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install Crystal
       uses: crystal-lang/install-crystal@v1
     - name: Install packages

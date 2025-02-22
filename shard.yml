@@ -1,5 +1,5 @@
 name: reqs-up
-version: 0.0.8
+version: 0.0.9
 
 authors:
   - Evgenii Tereshkov <evg.krsk@gmail.com>
@@ -18,4 +18,4 @@ executables:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    branch: master
+    tag: v1.6.4

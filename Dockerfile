@@ -1,5 +1,5 @@
-FROM crystallang/crystal:latest-alpine as build-env
-ENV BUILD_PACKAGES upx yaml-static
+FROM crystallang/crystal:latest-alpine AS build-env
+ENV BUILD_PACKAGES="upx yaml-static"
 WORKDIR /app
 
 # hadolint ignore=DL3018
@@ -20,8 +20,8 @@ RUN set -ex && \
     upx -9 bin/reqs-up && \
     :
 
-FROM alpine:3.17
-ENV CRYSTAL_ENV production
+FROM alpine:3.21
+ENV CRYSTAL_ENV=production
 WORKDIR /app
 
 COPY --from=build-env /app/bin/reqs-up /app/bin/reqs-up

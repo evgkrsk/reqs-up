@@ -36,14 +36,10 @@ jobs:
       uses: actions/checkout@v4
     - name: Install Crystal
       uses: crystal-lang/install-crystal@v1
-    - name: Install packages
-      run: brew install upx
     - name: Install dependencies
       run: shards install --production
     - name: Build the binary
       run: shards build --release --stats --progress --no-debug --local --production
-    - name: Compress binary
-      run: upx -9 bin/reqs-up
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4
       with:

@@ -56,7 +56,7 @@ jobs:
         path: ./artifacts
     - name: Create Release
       id: create_release
-      uses: ncipollo/release-action@v1.18.0
+      uses: ncipollo/release-action@v1.19.1
       with:
         generateReleaseNotes: true
     - name: Attach linux binary

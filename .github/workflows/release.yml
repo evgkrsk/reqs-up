@@ -24,7 +24,7 @@ jobs:
     - name: Strip
       run: strip bin/reqs-up && upx -9 bin/reqs-up
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: reqs-up-linux-static
         path: ./bin/reqs-up
@@ -41,7 +41,7 @@ jobs:
     - name: Build the binary
       run: shards build --release --stats --progress --no-debug --local --production
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: reqs-up-macos
         path: ./bin/reqs-up

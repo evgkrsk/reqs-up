@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: crystal-lang/install-crystal@v1
     - name: Cache shards
       uses: actions/cache@v4

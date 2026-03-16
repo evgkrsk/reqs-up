@@ -1,0 +1,14 @@
+---
+- name: ansible-role-1
+  src: https://github.com/example/repo1.git
+  version: 1.0.0
+  scm: git
+
+- name: ansible-role-2
+  src: https://github.com/example/repo2.git
+  version: 2.1.0
+  scm: git
+
+- name: ansible-role-3
+  src: https://github.com/example/repo3.git
+  scm: git

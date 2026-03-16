@@ -2,6 +2,7 @@
 # -*- mode: crystal; mode: view -*-
 require "semantic_version"
 require "yaml"
+require "log"
 
 module ReqsUp
   Log = ::Log.for(self)

@@ -1,0 +1,15 @@
+---
+- name: ansible-role-git
+  src: https://github.com/example/repo1.git
+  version: 1.0.0
+  scm: git
+
+- name: ansible-role-hg
+  src: https://bitbucket.org/example/repo2
+  version: 1.0.0
+  scm: hg
+
+- name: ansible-role-svn
+  src: https://svn.example.com/repo3
+  version: 1.0.0
+  scm: svn

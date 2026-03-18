@@ -35,10 +35,10 @@ repos:
         entry: shards check
         language: system
         pass_filenames: false
-  # - repo: local
-  #   hooks:
-  #     - id: crystal-spec
-  #       name: crystal spec
-  #       entry: crystal spec --fail-fast
-  #       language: system
-  #       pass_filenames: false
+  - repo: local
+    hooks:
+      - id: crystal-spec
+        name: crystal spec
+        entry: crystal spec --fail-fast
+        language: system
+        pass_filenames: false

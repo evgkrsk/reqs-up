@@ -145,7 +145,7 @@ module ReqsUp
       process.output.each_line do |line|
         tag = line.split('/')[2]
         Log.trace { "Got tag: #{tag}" }
-        result << tag
+        result << tag.sub(/^v/i, "")
       end
       status = process.wait
       if !status.success?

@@ -6,17 +6,39 @@ repos:
       - id: check-hooks-apply
       - id: check-useless-excludes
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-added-large-files
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
         args: [--format, parsable, -c, .yamllint]
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.13.1-beta
+    rev: v2.14.0
     hooks:
       - id: hadolint
+  - repo: local
+    hooks:
+      - id: crystal-format
+        name: crystal format
+        entry: crystal tool format
+        language: system
+        files: \.(cr|ecr)$
+        pass_filenames: true
+  - repo: local
+    hooks:
+      - id: shards-check
+        name: shards check
+        entry: shards check
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: crystal-spec
+        name: crystal spec
+        entry: crystal spec --fail-fast
+        language: system
+        pass_filenames: false

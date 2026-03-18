@@ -23,13 +23,16 @@ describe "main.cr CLI" do
 
   describe "опция --dry-run" do
     it "выводит результат в stdout вместо записи в файл" do
-      # Создаём временный файл для теста
       test_file = "spec/fixtures/requirements_dryrun.yml"
-      File.write(test_file, "---\n- name: test\n  src: https://github.com/test/repo.git\n  version: 1.0.0\n  scm: git\n")
+      File.write(test_file, "---
+- name: test
+  src: https://github.com/evgkrsk/reqs-up.git
+  version: 1.0.0
+  scm: git
+")
       output = `crystal run src/main.cr -- --dry-run --file #{test_file} 2>&1`
       $?.success?.should be_true
       output.should contain("---")
-      # Файл не должен быть изменён при dry-run
       File.read(test_file).should contain("1.0.0")
       File.delete(test_file)
     end
@@ -38,8 +41,12 @@ describe "main.cr CLI" do
   describe "опция --file" do
     it "использует указанный файл вместо requirements.yml" do
       test_file = "spec/fixtures/requirements_custom.yml"
-      File.write(test_file, "---\n- name: custom\n  src: https://github.com/test/repo.git\n  version: 1.0.0\n  scm: git\n")
-      # Запускаем с --dry-run чтобы проверить что файл читается
+      File.write(test_file, "---
+- name: custom
+  src: https://github.com/evgkrsk/reqs-up.git
+  version: 1.0.0
+  scm: git
+")
       output = `crystal run src/main.cr -- --dry-run --file #{test_file} 2>&1`
       $?.success?.should be_true
       output.should contain("custom")
@@ -49,7 +56,6 @@ describe "main.cr CLI" do
 
   describe "отсутствие файла" do
     it "завершается с кодом 3 когда файл не найден" do
-      # Используем несуществующий файл
       output = `crystal run src/main.cr -- --file spec/fixtures/nonexistent.yml 2>&1`
       $?.success?.should be_false
       $?.exit_code.should eq(3)
@@ -63,6 +69,15 @@ describe "main.cr CLI" do
       $?.success?.should be_false
       $?.exit_code.should eq(1)
       output.should contain("is not a valid option")
+    end
+  end
+
+  describe "отсутствие аргумента для опции" do
+    it "завершается с кодом 2 когда опции не хватает аргумента" do
+      output = `crystal run src/main.cr -- --file 2>&1`
+      $?.success?.should be_false
+      $?.exit_code.should eq(2)
+      output.should contain("is missing something")
     end
   end
 end

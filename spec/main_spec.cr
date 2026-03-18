@@ -26,7 +26,7 @@ describe "main.cr CLI" do
       test_file = "spec/fixtures/requirements_dryrun.yml"
       File.write(test_file, "---
 - name: test
-  src: https://github.com/test/repo.git
+  src: https://github.com/evgkrsk/reqs-up.git
   version: 1.0.0
   scm: git
 ")
@@ -43,7 +43,7 @@ describe "main.cr CLI" do
       test_file = "spec/fixtures/requirements_custom.yml"
       File.write(test_file, "---
 - name: custom
-  src: https://github.com/test/repo.git
+  src: https://github.com/evgkrsk/reqs-up.git
   version: 1.0.0
   scm: git
 ")

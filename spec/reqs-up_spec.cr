@@ -70,21 +70,21 @@ describe ReqsUp do
       it "извлекает src, name, version, scm" do
         yaml_str = <<-YAML
         - name: test-role
-          src: https://github.com/test/repo.git
+          src: https://github.com/evgkrsk/reqs-up.git
           version: 1.2.3
           scm: git
         YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         git_req.name.should eq("test-role")
-        git_req.src.should eq("https://github.com/test/repo.git")
+        git_req.src.should eq("https://github.com/evgkrsk/reqs-up.git")
         git_req.version.should eq("1.2.3")
         git_req.scm.should eq("git")
       end
 
       it "корректно обрабатывает отсутствие name" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: 1.0.0
         YAML
         yaml = YAML.parse(yaml_str)
@@ -96,7 +96,7 @@ describe ReqsUp do
     describe "#versions" do
       it "возвращает пустой массив при отсутствии git" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: 1.0.0
         YAML
         yaml = YAML.parse(yaml_str)
@@ -110,7 +110,7 @@ describe ReqsUp do
     describe "#update" do
       it "возвращает nil для не-semver версии" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: not-a-version
         YAML
         yaml = YAML.parse(yaml_str)
@@ -121,7 +121,7 @@ describe ReqsUp do
 
       it "возвращает nil при отсутствии версии" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
         YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
@@ -131,7 +131,7 @@ describe ReqsUp do
 
       it "возвращает текущую версию если нет новых версий" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: 1.0.0
         YAML
         yaml = YAML.parse(yaml_str)
@@ -144,45 +144,42 @@ describe ReqsUp do
     end
   end
 
-
   describe ReqsUp::Req do
     describe "#to_s" do
       it "возвращает строковое представление объекта" do
         yaml_str = <<-YAML
         - name: test-role
-          src: https://github.com/test/repo.git
+          src: https://github.com/evgkrsk/reqs-up.git
           version: 1.2.3
           scm: git
         YAML
         yaml = YAML.parse(yaml_str)
         req = ReqsUp::GitReq.new(yaml[0])
         req.to_s.should contain("GitReq")
-        req.to_s.should contain("https://github.com/test/repo.git")
+        req.to_s.should contain("https://github.com/evgkrsk/reqs-up.git")
         req.to_s.should contain("test-role")
         req.to_s.should contain("1.2.3")
       end
     end
   end
 
-
   describe ReqsUp::GitReq do
     describe "#update с обновлением версии" do
       it "обновляет версию когда есть более новая" do
-        git_script = "spec/fixtures/mock_git.sh"
-        File.write(git_script, <<-SCRIPT
-#!/bin/bash
-if [[ "$1" == "ls-remote" && "$2" == "--tags" && "$3" == "--refs" ]]; then
-  echo "abc123 refs/tags/v0.9.0"
-  echo "def456 refs/tags/v1.0.0"
-  echo "ghi789 refs/tags/v1.1.0"
-  echo "jkl012 refs/tags/v1.2.0"
-  echo "mno345 refs/tags/v2.0.0"
-fi
-SCRIPT
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v0.9.0"
+        echo "def456 refs/tags/v1.0.0"
+        echo "ghi789 refs/tags/v1.1.0"
+        echo "jkl012 refs/tags/v1.2.0"
+        echo "mno345 refs/tags/v2.0.0"
+        SCRIPT
+        File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: 1.0.0
         YAML
         yaml = YAML.parse(yaml_str)
@@ -204,7 +201,7 @@ SCRIPT
     describe "обработка ошибок git" do
       it "возвращает пустой массив когда git не найден" do
         yaml_str = <<-YAML
-        - src: https://github.com/test/repo.git
+        - src: https://github.com/evgkrsk/reqs-up.git
           version: 1.0.0
         YAML
         yaml = YAML.parse(yaml_str)

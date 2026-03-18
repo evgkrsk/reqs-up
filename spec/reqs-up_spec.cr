@@ -143,4 +143,82 @@ describe ReqsUp do
       end
     end
   end
+
+
+  describe ReqsUp::Req do
+    describe "#to_s" do
+      it "возвращает строковое представление объекта" do
+        yaml_str = <<-YAML
+        - name: test-role
+          src: https://github.com/test/repo.git
+          version: 1.2.3
+          scm: git
+        YAML
+        yaml = YAML.parse(yaml_str)
+        req = ReqsUp::GitReq.new(yaml[0])
+        req.to_s.should contain("GitReq")
+        req.to_s.should contain("https://github.com/test/repo.git")
+        req.to_s.should contain("test-role")
+        req.to_s.should contain("1.2.3")
+      end
+    end
+  end
+
+
+  describe ReqsUp::GitReq do
+    describe "#update с обновлением версии" do
+      it "обновляет версию когда есть более новая" do
+        git_script = "spec/fixtures/mock_git.sh"
+        File.write(git_script, <<-SCRIPT
+#!/bin/bash
+if [[ "$1" == "ls-remote" && "$2" == "--tags" && "$3" == "--refs" ]]; then
+  echo "abc123 refs/tags/v0.9.0"
+  echo "def456 refs/tags/v1.0.0"
+  echo "ghi789 refs/tags/v1.1.0"
+  echo "jkl012 refs/tags/v1.2.0"
+  echo "mno345 refs/tags/v2.0.0"
+fi
+SCRIPT
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/test/repo.git
+          version: 1.0.0
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should eq("2.0.0")
+        git_req.version.should eq("2.0.0")
+      end
+    end
+
+    describe "обработка ошибок git" do
+      it "возвращает пустой массив когда git не найден" do
+        yaml_str = <<-YAML
+        - src: https://github.com/test/repo.git
+          version: 1.0.0
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = "/nonexistent"
+
+        versions = git_req.versions
+
+        ENV["PATH"] = old_path
+
+        versions.should be_empty
+      end
+    end
+  end
 end

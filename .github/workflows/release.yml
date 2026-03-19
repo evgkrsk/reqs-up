@@ -56,24 +56,9 @@ jobs:
         path: ./artifacts
     - name: Create Release
       id: create_release
-      uses: ncipollo/release-action@v1.21.0
+      uses: softprops/action-gh-release@v2
       with:
-        generateReleaseNotes: true
-    - name: Attach linux binary
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/reqs-up-linux-static/reqs-up
-        asset_name: reqs-up-linux-static
-        asset_content_type: application/binary
-    - name: Attach macOS binary
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/reqs-up-macos/reqs-up
-        asset_name: reqs-up-macos
-        asset_content_type: application/binary
+        generate_release_notes: true
+        files: |
+          ./artifacts/reqs-up-linux-static/reqs-up
+          ./artifacts/reqs-up-macos/reqs-up

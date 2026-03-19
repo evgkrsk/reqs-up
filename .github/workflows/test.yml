@@ -7,6 +7,10 @@ on:
   schedule:
     - cron: "0 2 * * 5" # Every friday at 2 AM
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     strategy:

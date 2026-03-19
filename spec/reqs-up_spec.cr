@@ -41,6 +41,41 @@ describe ReqsUp do
       end
     end
 
+    describe "#initialize - ReqCollections формат" do
+      it "парсит файл с collections top-level ключом" do
+        file = File.new("spec/fixtures/collections-requirements.yml")
+        reqs = ReqsUp::Requirements.new(file)
+        reqs.format.should eq(ReqsUp::YAMLFormat::ReqCollections)
+        reqs.reqs.size.should eq(1)
+        reqs.reqs[0].name.should eq("o3.anspector")
+        reqs.reqs[0].src.should eq("git@gitlab.mycorp.com:infrastructure/iac/ansible-collections/anspector_callback.git")
+        reqs.reqs[0].scm.should eq("git")
+        reqs.reqs[0].version.should eq("1.0.0")
+      end
+
+      it "dump сохраняет ReqCollections формат" do
+        file = File.new("spec/fixtures/collections-requirements.yml")
+        reqs = ReqsUp::Requirements.new(file)
+        dumped = reqs.dump
+        dumped.should contain("collections:")
+        dumped.should contain("o3.anspector")
+      end
+    end
+
+    describe "#initialize - ошибки" do
+      it "выбрасывает при неизвестном формате YAML" do
+        test_file = "spec/fixtures/invalid_test.yml"
+        File.write(test_file, "---\ninvalid: true\n")
+        begin
+          expect_raises(Exception, "Unsupported YAML format") do
+            ReqsUp::Requirements.new(File.new(test_file))
+          end
+        ensure
+          File.delete(test_file) if File.exists?(test_file)
+        end
+      end
+    end
+
     describe "#save!" do
       it "записывает требования в файл" do
         test_file = "spec/fixtures/requirements_test_save.yml"

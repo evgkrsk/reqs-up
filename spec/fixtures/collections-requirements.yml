@@ -1,0 +1,8 @@
+---
+collections:
+  - name: netbox.netbox
+    version: 3.20.0
+  - name: o3.anspector
+    type: git
+    source: git@gitlab.mycorp.com:infrastructure/iac/ansible-collections/anspector_callback.git
+    version: 1.0.0

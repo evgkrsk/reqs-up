@@ -94,8 +94,8 @@ describe ReqsUp do
         file = File.new("spec/fixtures/requirements_mixed.yml")
         reqs = ReqsUp::Requirements.new(file)
         # Только git entries должны быть добавлены
-        reqs.reqs.size.should eq(1)
-        reqs.reqs[0].name.should eq("ansible-role-git")
+        reqs.reqs.size.should eq(2)
+        reqs.reqs[0].name.should eq("reqs-up-git")
       end
     end
   end

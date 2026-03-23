@@ -58,10 +58,10 @@ module ReqsUp
         Log.debug { "#{y}" }
         next unless y["src"]? || y["source"]?
         case y["scm"]?.try(&.as_s)
-        when Nil, "git"
+        when "git"
           @reqs << GitReq.new(y)
         else
-          Log.error { "Unsupported SCM: #{y["scm"]}, skipping" }
+          @reqs << DefaultReq.new(y)
         end
       end
     end
@@ -72,10 +72,10 @@ module ReqsUp
         Log.debug { "#{y}" }
         next unless y["source"]? || y["src"]?
         case y["type"]?.try(&.as_s)
-        when Nil, "git"
+        when "git"
           @reqs << GitReq.new(y)
         else
-          Log.error { "Unsupported type: #{y["type"]}, skipping" }
+          @reqs << DefaultReq.new(y)
         end
       end
     end
@@ -200,6 +200,17 @@ module ReqsUp
         Log.error { "Running \"#{proccmd}\" failed" }
       end
       result
+    end
+  end
+
+  # Requirement implementation for non-git sources
+  class DefaultReq < Req
+    def versions : Array(String)
+      if v = @version
+        [v]
+      else
+        [] of String
+      end
     end
   end
 end

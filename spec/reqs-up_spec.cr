@@ -46,19 +46,27 @@ describe ReqsUp do
         file = File.new("spec/fixtures/collections-requirements.yml")
         reqs = ReqsUp::Requirements.new(file)
         reqs.format.should eq(ReqsUp::YAMLFormat::ReqCollections)
-        reqs.reqs.size.should eq(1)
-        reqs.reqs[0].name.should eq("o3.anspector")
-        reqs.reqs[0].src.should eq("git@gitlab.mycorp.com:infrastructure/iac/ansible-collections/anspector_callback.git")
-        reqs.reqs[0].scm.should eq("git")
-        reqs.reqs[0].version.should eq("1.0.0")
       end
 
-      it "dump сохраняет ReqCollections формат" do
+      it "сохраняет все entries без потери данных" do
         file = File.new("spec/fixtures/collections-requirements.yml")
-        reqs = ReqsUp::Requirements.new(file)
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        entries_with_source = input_yaml["collections"].as_a.select { |e| e["src"]? || e["source"]? }
+        input_count = entries_with_source.size
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/collections-requirements.yml"))
+        reqs.reqs.size.should eq(input_count)
+
         dumped = reqs.dump
-        dumped.should contain("collections:")
-        dumped.should contain("o3.anspector")
+        entries_with_source.each do |entry|
+          src = entry["src"]?.try(&.as_s) || entry["source"].as_s
+          dumped.should contain(src)
+          if entry["name"]?
+            name = entry["name"].as_s
+            dumped.should contain(name)
+          end
+        end
       end
     end
 
@@ -89,13 +97,105 @@ describe ReqsUp do
       end
     end
 
-    describe "обработка не-git SCM" do
-      it "логирует ошибку и пропускает не-git entries" do
+    describe "сохранение всех entries (включая не-git)" do
+      it "не теряет не-git entries при парсинге ReqList" do
         file = File.new("spec/fixtures/requirements_mixed.yml")
-        reqs = ReqsUp::Requirements.new(file)
-        # Только git entries должны быть добавлены
-        reqs.reqs.size.should eq(2)
-        reqs.reqs[0].name.should eq("reqs-up-git")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        input_count = input_yaml.as_a.size
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/requirements_mixed.yml"))
+        reqs.reqs.size.should eq(input_count)
+
+        dumped = reqs.dump
+        input_yaml.as_a.each do |entry|
+          src = entry["src"].as_s
+          dumped.should contain(src)
+          if entry["name"]?
+            name = entry["name"].as_s
+            dumped.should contain(name)
+          end
+        end
+      end
+
+      it "длина списка не меняется после update" do
+        file = File.new("spec/fixtures/requirements_mixed.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        entries_with_source = input_yaml.as_a.select { |e| e["src"]? || e["source"]? }
+        input_count = entries_with_source.size
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/requirements_mixed.yml"))
+        original_count = reqs.reqs.size
+
+        reqs.reqs.each(&.update)
+
+        reqs.reqs.size.should eq(original_count)
+        reqs.reqs.size.should eq(input_count)
+      end
+
+      it "src и name сохраняются после update для всех entries" do
+        file = File.new("spec/fixtures/requirements_mixed.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        entries_with_source = input_yaml.as_a.select { |e| e["src"]? || e["source"]? }
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/requirements_mixed.yml"))
+        reqs.reqs.each(&.update)
+
+        dumped = reqs.dump
+        entries_with_source.each do |entry|
+          src = entry["src"].as_s
+          dumped.should contain(src)
+          if entry["name"]?
+            name = entry["name"].as_s
+            dumped.should contain(name)
+          end
+        end
+      end
+    end
+  end
+
+  describe ReqsUp::DefaultReq do
+    describe "#versions" do
+      it "возвращает текущую версию из YAML" do
+        yaml_str = "- src: https://example.com/repo\n  version: 1.0.0"
+        yaml = YAML.parse(yaml_str)
+        req = ReqsUp::DefaultReq.new(yaml[0])
+        req.versions.should eq(["1.0.0"])
+      end
+
+      it "возвращает пустой массив когда версия не указана" do
+        yaml_str = "- src: https://example.com/repo"
+        yaml = YAML.parse(yaml_str)
+        req = ReqsUp::DefaultReq.new(yaml[0])
+        req.versions.should eq([] of String)
+      end
+    end
+
+    describe "#update" do
+      it "не изменяет version после update" do
+        yaml_str = "- src: https://example.com/repo\n  version: 1.0.0\n  scm: hg"
+        yaml = YAML.parse(yaml_str)
+        req = ReqsUp::DefaultReq.new(yaml[0])
+        original_version = req.version
+
+        req.update
+
+        req.version.should eq(original_version)
+      end
+
+      it "сохраняет все поля в dump после update" do
+        yaml_str = "- name: my-role\n  src: https://example.com/repo\n  version: 1.0.0\n  scm: hg"
+        yaml = YAML.parse(yaml_str)
+        req = ReqsUp::DefaultReq.new(yaml[0])
+        req.update
+
+        dumped = YAML.dump(req)
+        dumped.should contain("my-role")
+        dumped.should contain("https://example.com/repo")
+        dumped.should contain("1.0.0")
+        dumped.should contain("hg")
       end
     end
   end

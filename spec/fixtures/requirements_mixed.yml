@@ -12,6 +12,10 @@
   version: 0.0.11
   scm: svn
 - src: https://github.com/evgkrsk/reqs-up
-  name: reqs-up-wtf
+  name: reqs-up-wtf-1
   version: 0.0.10
+  scm: wtf
+- src: https://github.com/evgkrsk/reqs-up
+  name: reqs-up-wtf-2
+  scm: wtf
 ...

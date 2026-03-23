@@ -89,6 +89,24 @@ describe ReqsUp do
           end
         end
       end
+
+      it "сохраняет ключи source и type для git-репозиториев в collections" do
+        file = File.new("spec/fixtures/collections-requirements.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/collections-requirements.yml"))
+        dumped = reqs.dump
+
+        input_yaml["collections"].as_a.each do |entry|
+          if entry["source"]?
+            dumped.should contain("source:")
+          end
+          if entry["type"]?
+            dumped.should contain("type:")
+          end
+        end
+      end
     end
 
     describe "#initialize - ошибки" do

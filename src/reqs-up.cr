@@ -90,13 +90,7 @@ module ReqsUp
       when YAMLFormat::ReqList
         YAML.dump(@reqs) + "...\n"
       when YAMLFormat::ReqCollections
-        collections_yaml = @reqs.map do |req|
-          if req.is_a?(DefaultReq)
-            req.original_yaml
-          else
-            req
-          end
-        end + @preserved_entries
+        collections_yaml = @reqs.map(&.original_yaml) + @preserved_entries
         YAML.dump({"collections" => collections_yaml})
       else
         raise "Unknown format"
@@ -189,6 +183,12 @@ module ReqsUp
   # Requirement implementation for git
   class GitReq < Req
     Log = ::Log.for(self)
+    getter original_yaml : YAML::Any
+
+    def initialize(req : YAML::Any)
+      super(req)
+      @original_yaml = req
+    end
 
     # fetch git versions
     def versions : Array(String)

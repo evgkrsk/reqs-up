@@ -68,6 +68,27 @@ describe ReqsUp do
           end
         end
       end
+
+      it "сохраняет entries без src/source (netbox.netbox)" do
+        file = File.new("spec/fixtures/collections-requirements.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        all_entries_count = input_yaml["collections"].as_a.size
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/collections-requirements.yml"))
+        dumped = reqs.dump
+        all_entries_count.times do |i|
+          entry = input_yaml["collections"].as_a[i]
+          if entry["name"]?
+            name = entry["name"].as_s
+            dumped.should contain(name)
+          end
+          if entry["version"]?
+            version = entry["version"].as_s
+            dumped.should contain(version)
+          end
+        end
+      end
     end
 
     describe "#initialize - ошибки" do

@@ -26,6 +26,7 @@ module ReqsUp
     getter reqs : Array(Req) = [] of Req
     getter yaml : YAML::Any
     getter format : YAMLFormat
+    private getter preserved_entries : Array(YAML::Any) = [] of YAML::Any
 
     def initialize(@file : File)
       @yaml = YAML.parse(@file.gets_to_end)
@@ -70,12 +71,15 @@ module ReqsUp
       collections = @yaml["collections"].as_a
       collections.each do |y|
         Log.debug { "#{y}" }
-        next unless y["source"]? || y["src"]?
-        case y["type"]?.try(&.as_s)
-        when "git"
-          @reqs << GitReq.new(y)
+        if y["source"]? || y["src"]?
+          case y["type"]?.try(&.as_s)
+          when "git"
+            @reqs << GitReq.new(y)
+          else
+            @reqs << DefaultReq.new(y)
+          end
         else
-          @reqs << DefaultReq.new(y)
+          @preserved_entries << y
         end
       end
     end
@@ -86,7 +90,14 @@ module ReqsUp
       when YAMLFormat::ReqList
         YAML.dump(@reqs) + "...\n"
       when YAMLFormat::ReqCollections
-        YAML.dump({"collections" => @reqs})
+        collections_yaml = @reqs.map do |req|
+          if req.is_a?(DefaultReq)
+            req.original_yaml
+          else
+            req
+          end
+        end + @preserved_entries
+        YAML.dump({"collections" => collections_yaml})
       else
         raise "Unknown format"
       end
@@ -205,12 +216,16 @@ module ReqsUp
 
   # Requirement implementation for non-git sources
   class DefaultReq < Req
+    getter original_yaml : YAML::Any
+
+    def initialize(req : YAML::Any)
+      super(req)
+      @original_yaml = req
+    end
+
     def versions : Array(String)
-      if v = @version
-        [v]
-      else
-        [] of String
-      end
+      v = @version
+      v ? [v] : [] of String
     end
   end
 end

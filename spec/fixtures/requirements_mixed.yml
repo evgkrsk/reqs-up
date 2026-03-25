@@ -1,15 +1,21 @@
 ---
-- name: ansible-role-git
-  src: https://github.com/example/repo1.git
-  version: 1.0.0
+- src: https://github.com/evgkrsk/reqs-up.git
+  name: reqs-up-git
+  version: 0.0.12
   scm: git
-
-- name: ansible-role-hg
-  src: https://bitbucket.org/example/repo2
-  version: 1.0.0
+- src: https://github.com/evgkrsk/reqs-up
+  name: reqs-up-hg
+  version: 0.0.13
   scm: hg
-
-- name: ansible-role-svn
-  src: https://svn.example.com/repo3
-  version: 1.0.0
+- src: https://github.com/evgkrsk/reqs-up
+  name: reqs-up-svn
+  version: 0.0.11
   scm: svn
+- src: https://github.com/evgkrsk/reqs-up
+  name: reqs-up-wtf-1
+  version: 0.0.10
+  scm: wtf
+- src: https://github.com/evgkrsk/reqs-up
+  name: reqs-up-wtf-2
+  scm: wtf
+...

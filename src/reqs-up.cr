@@ -14,33 +14,87 @@ module ReqsUp
     Patch
   end
 
+  enum YAMLFormat
+    ReqList
+    ReqCollections
+  end
+
   # Describes requirements.yml object
   class Requirements
     Log = ::Log.for(self)
     include YAML::Serializable
-    # All requirements
     getter reqs : Array(Req) = [] of Req
-    # raw yaml content
     getter yaml : YAML::Any
+    getter format : YAMLFormat
+    private getter preserved_entries : Array(YAML::Any) = [] of YAML::Any
 
-    # Initialize requirements object from *file* object
     def initialize(@file : File)
       @yaml = YAML.parse(@file.gets_to_end)
-      @yaml.as_a.each do |y|
-        Log.debug { "#{y}" }
-        case y["scm"]?
-        when Nil, "git"
-          @reqs << GitReq.new(y)
-        else
-          Log.error { "Unsupported SCM: #{y["scm"]}, skipping" }
-        end
-      end
+      @format = detect_format
+      parse
       Log.trace { "Reqs: #{@reqs}" }
     end
 
+    private def detect_format : YAMLFormat
+      if @yaml.as_h? && @yaml.as_h.has_key?("collections")
+        YAMLFormat::ReqCollections
+      elsif @yaml.as_a?
+        YAMLFormat::ReqList
+      else
+        raise "Unsupported YAML format: expected array or object with 'collections' key"
+      end
+    end
+
+    private def parse
+      case @format
+      when YAMLFormat::ReqList
+        parse_req_list
+      when YAMLFormat::ReqCollections
+        parse_collections
+      end
+    end
+
+    private def parse_req_list
+      @yaml.as_a.each do |y|
+        Log.debug { "#{y}" }
+        next unless y["src"]? || y["source"]?
+        case y["scm"]?.try(&.as_s)
+        when "git"
+          @reqs << GitReq.new(y)
+        else
+          @reqs << DefaultReq.new(y)
+        end
+      end
+    end
+
+    private def parse_collections
+      collections = @yaml["collections"].as_a
+      collections.each do |y|
+        Log.debug { "#{y}" }
+        if y["source"]? || y["src"]?
+          case y["type"]?.try(&.as_s)
+          when "git"
+            @reqs << GitReq.new(y)
+          else
+            @reqs << DefaultReq.new(y)
+          end
+        else
+          @preserved_entries << y
+        end
+      end
+    end
+
     # Return YAML dump of internal state
-    def dump
-      YAML.dump(@reqs) + "...\n"
+    def dump : String
+      case @format
+      when YAMLFormat::ReqList
+        YAML.dump(@reqs) + "...\n"
+      when YAMLFormat::ReqCollections
+        collections_yaml = @reqs.map(&.original_yaml) + @preserved_entries
+        YAML.dump({"collections" => collections_yaml})
+      else
+        raise "Unknown format"
+      end
     end
 
     # Save object to *dest* File
@@ -61,16 +115,15 @@ module ReqsUp
 
     # Initialize one requirements from YAML element
     def initialize(req : YAML::Any)
-      @src = req["src"].as_s
+      src_val = req["src"]?.try(&.as_s?) || req["source"]?.try(&.as_s?)
+      @src = src_val || raise "Missing src/source key"
       if req["name"]?
         @name = req["name"].as_s
       end
       if req["version"]?
         @version = req["version"].as_s
       end
-      if req["scm"]?
-        @scm = req["scm"].as_s
-      end
+      @scm = req["scm"]?.try(&.as_s) || req["type"]?.try(&.as_s)
     end
 
     # Return all available req versions
@@ -130,6 +183,12 @@ module ReqsUp
   # Requirement implementation for git
   class GitReq < Req
     Log = ::Log.for(self)
+    getter original_yaml : YAML::Any
+
+    def initialize(req : YAML::Any)
+      super(req)
+      @original_yaml = req
+    end
 
     # fetch git versions
     def versions : Array(String)
@@ -152,6 +211,21 @@ module ReqsUp
         Log.error { "Running \"#{proccmd}\" failed" }
       end
       result
+    end
+  end
+
+  # Requirement implementation for non-git sources
+  class DefaultReq < Req
+    getter original_yaml : YAML::Any
+
+    def initialize(req : YAML::Any)
+      super(req)
+      @original_yaml = req
+    end
+
+    def versions : Array(String)
+      v = @version
+      v ? [v] : [] of String
     end
   end
 end

@@ -38,6 +38,9 @@ describe ReqsUp do
         reqs.reqs.empty?.should be_true
         dumped = reqs.dump
         dumped.should eq("--- []\n...\n")
+        parsed = YAML.parse(dumped)
+        parsed.should_not be_nil
+        parsed.as_a.empty?.should be_true
       end
     end
 

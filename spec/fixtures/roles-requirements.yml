@@ -1,0 +1,8 @@
+---
+roles:
+  - src: git@gitlab.example.com:infrastructure/iac/ansible-roles/linux_tech_user.git
+    version: 1.0.2
+    scm: git
+  - src: git@gitlab.example.com:infrastructure/iac/ansible-roles/local-entrypoint.git
+    version: master
+    scm: git

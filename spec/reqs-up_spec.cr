@@ -112,6 +112,69 @@ describe ReqsUp do
       end
     end
 
+    describe "#initialize - ReqRoles формат" do
+      it "парсит файл с roles top-level ключом" do
+        file = File.new("spec/fixtures/roles-requirements.yml")
+        reqs = ReqsUp::Requirements.new(file)
+        reqs.format.should eq(ReqsUp::YAMLFormat::ReqRoles)
+      end
+
+      it "сохраняет все entries без потери данных" do
+        file = File.new("spec/fixtures/roles-requirements.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+        entries_with_source = input_yaml["roles"].as_a.select { |e| e["src"]? || e["source"]? }
+        input_count = entries_with_source.size
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/roles-requirements.yml"))
+        reqs.reqs.size.should eq(input_count)
+
+        dumped = reqs.dump
+        entries_with_source.each do |entry|
+          src = entry["src"]?.try(&.as_s) || entry["source"].as_s
+          dumped.should contain(src)
+          if entry["name"]?
+            name = entry["name"].as_s
+            dumped.should contain(name)
+          end
+        end
+      end
+
+      it "сохраняет ключи src и scm для git-репозиториев в roles" do
+        file = File.new("spec/fixtures/roles-requirements.yml")
+        input_yaml = YAML.parse(file.gets_to_end)
+        file.close
+
+        reqs = ReqsUp::Requirements.new(File.new("spec/fixtures/roles-requirements.yml"))
+        dumped = reqs.dump
+
+        input_yaml["roles"].as_a.each do |entry|
+          if entry["src"]?
+            dumped.should contain("src:")
+          end
+          if entry["scm"]?
+            dumped.should contain("scm:")
+          end
+        end
+      end
+
+      it "корректно определяет формат ReqRoles" do
+        file = File.new("spec/fixtures/roles-requirements.yml")
+        reqs = ReqsUp::Requirements.new(file)
+        reqs.format.should eq(ReqsUp::YAMLFormat::ReqRoles)
+        reqs.reqs.size.should eq(2)
+      end
+
+      it "dump сохраняет структуру с ключом roles" do
+        file = File.new("spec/fixtures/roles-requirements.yml")
+        reqs = ReqsUp::Requirements.new(file)
+        dumped = reqs.dump
+        dumped.should contain("roles:")
+        dumped.should contain("git@gitlab.example.com:infrastructure/iac/ansible-roles/linux_tech_user.git")
+        dumped.should contain("git@gitlab.example.com:infrastructure/iac/ansible-roles/local-entrypoint.git")
+      end
+    end
+
     describe "#initialize - ошибки" do
       it "выбрасывает при неизвестном формате YAML" do
         test_file = "spec/fixtures/invalid_test.yml"

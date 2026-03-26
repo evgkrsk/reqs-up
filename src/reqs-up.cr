@@ -17,6 +17,7 @@ module ReqsUp
   enum YAMLFormat
     ReqList
     ReqCollections
+    ReqRoles
   end
 
   # Describes requirements.yml object
@@ -38,10 +39,12 @@ module ReqsUp
     private def detect_format : YAMLFormat
       if @yaml.as_h? && @yaml.as_h.has_key?("collections")
         YAMLFormat::ReqCollections
+      elsif @yaml.as_h? && @yaml.as_h.has_key?("roles")
+        YAMLFormat::ReqRoles
       elsif @yaml.as_a?
         YAMLFormat::ReqList
       else
-        raise "Unsupported YAML format: expected array or object with 'collections' key"
+        raise "Unsupported YAML format: expected array or object with 'collections' or 'roles' key"
       end
     end
 
@@ -51,6 +54,8 @@ module ReqsUp
         parse_req_list
       when YAMLFormat::ReqCollections
         parse_collections
+      when YAMLFormat::ReqRoles
+        parse_roles
       end
     end
 
@@ -84,6 +89,20 @@ module ReqsUp
       end
     end
 
+    private def parse_roles
+      roles = @yaml["roles"].as_a
+      roles.each do |y|
+        Log.debug { "#{y}" }
+        next unless y["src"]? || y["source"]?
+        case y["scm"]?.try(&.as_s)
+        when "git"
+          @reqs << GitReq.new(y)
+        else
+          @reqs << DefaultReq.new(y)
+        end
+      end
+    end
+
     # Return YAML dump of internal state
     def dump : String
       case @format
@@ -92,6 +111,9 @@ module ReqsUp
       when YAMLFormat::ReqCollections
         collections_yaml = @reqs.map(&.original_yaml) + @preserved_entries
         YAML.dump({"collections" => collections_yaml})
+      when YAMLFormat::ReqRoles
+        roles_yaml = @reqs.map(&.original_yaml)
+        YAML.dump({"roles" => roles_yaml})
       else
         raise "Unknown format"
       end

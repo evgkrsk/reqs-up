@@ -10,6 +10,7 @@ dryrun = false
 logbackend = Log::IOBackend.new(STDERR)
 default_source_file = "requirements.yml"
 source_file = File.new(File::NULL)
+version_mode : ReqsUp::Versions = ReqsUp::Versions::Latest
 
 Log.setup_from_env(default_level: :info, backend: logbackend)
 
@@ -17,6 +18,20 @@ OptionParser.parse do |parser|
   parser.banner = "Usage: #{PROGRAM_NAME} [arguments]\n\nUpdates requirements.yml file in-place\n"
   parser.on("-n", "--dry-run", "Output result YAML to stdout") { dryrun = true }
   parser.on("-f FILE", "--file=FILE", "Specifies the FILE instead of ./#{default_source_file}") { |file| default_source_file = file }
+  parser.on("-m", "--minor", "Update only within minor version (same major)") do
+    if version_mode != ReqsUp::Versions::Latest
+      Log.error { "--minor and --patch are mutually exclusive" }
+      exit 1
+    end
+    version_mode = ReqsUp::Versions::Minor
+  end
+  parser.on("-p", "--patch", "Update only within patch version (same major and minor)") do
+    if version_mode != ReqsUp::Versions::Latest
+      Log.error { "--minor and --patch are mutually exclusive" }
+      exit 1
+    end
+    version_mode = ReqsUp::Versions::Patch
+  end
   parser.on("-h", "--help", "Show this help and exit") do
     puts parser
     exit
@@ -44,7 +59,7 @@ end
 
 requirements = ReqsUp::Requirements.new(source_file)
 requirements.reqs.each do |req|
-  req.update
+  req.update(version_mode)
 end
 
 if dryrun

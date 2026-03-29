@@ -80,4 +80,26 @@ describe "main.cr CLI" do
       output.should contain("is missing something")
     end
   end
+
+  describe "опция --minor" do
+    it "отображается в справке" do
+      output = `crystal run src/main.cr -- --help 2>&1`
+      output.should contain("--minor")
+    end
+  end
+
+  describe "опция --patch" do
+    it "отображается в справке" do
+      output = `crystal run src/main.cr -- --help 2>&1`
+      output.should contain("--patch")
+    end
+  end
+
+  describe "взаимное исключение --minor и --patch" do
+    it "завершается с ошибкой при использовании обоих флагов" do
+      output = `crystal run src/main.cr -- -m -p --file spec/fixtures/requirements.yml 2>&1`
+      $?.success?.should be_false
+      output.should contain("mutually exclusive")
+    end
+  end
 end

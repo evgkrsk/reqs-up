@@ -163,16 +163,7 @@ module ReqsUp
     # Update requirement version, returns final version and explanation
     def update(ver : Versions = Versions::Latest) : String | Nil
       Log.debug { "Updating req #{self}" }
-      current : SemanticVersion | Nil = nil
-      begin
-        current = SemanticVersion.parse(@version.not_nil!)
-      rescue ArgumentError
-        Log.debug { "#{@version} is not semver, skipping" }
-        return
-      rescue NilAssertionError
-        Log.debug { "No version defined, skipping" }
-        return
-      end
+      current = parse_current_version
       return unless current
 
       Log.debug { "Current version: #{@version}" }
@@ -183,48 +174,78 @@ module ReqsUp
         @version = selected.version.to_s
         explanation = explain_selection(ver, current, selected.version)
         Log.info { "#{@name || @src}: #{current} → #{@version} (#{explanation})" }
-        return @version
+        @version
       else
-        case ver
-        when Versions::Patch
-          Log.warn { "no suitable versions found for '#{@name || @src}' within patch version (current: #{current})" }
-        when Versions::Minor
-          Log.warn { "no suitable versions found for '#{@name || @src}' within minor version (current: #{current})" }
-        when Versions::Latest
-          return @version
-        end
-        return nil
+        handle_no_update(ver, current)
       end
     end
 
-    private def select_version(tags : Array(String), current : SemanticVersion, ver : Versions) : Selection | Nil
-      stable_tags = tags.compact_map do |t|
-        begin
-          v = SemanticVersion.parse(t)
-          v.prerelease.to_s.empty? ? Selection.new(t, v) : nil
-        rescue ArgumentError
-          Log.warn { "skipping non-semver tag '#{t}' for repository '#{@src}'" }
-          nil
-        end
-      end
+    private def parse_current_version : SemanticVersion | Nil
+      ver = @version
+      return nil unless ver
+      SemanticVersion.parse(ver)
+    rescue ArgumentError
+      Log.debug { "#{@version} is not semver, skipping" }
+      nil
+    end
 
+    private def handle_no_update(ver : Versions, current : SemanticVersion) : String | Nil
+      case ver
+      when Versions::Patch
+        Log.warn { "no suitable versions found for '#{@name || @src}' within patch version (current: #{current})" }
+      when Versions::Minor
+        Log.warn { "no suitable versions found for '#{@name || @src}' within minor version (current: #{current})" }
+      when Versions::Latest
+        return @version
+      end
+      nil
+    end
+
+    private def select_version(tags : Array(String), current : SemanticVersion, ver : Versions) : Selection | Nil
+      stable_tags = parse_and_filter_tags(tags)
       return nil if stable_tags.empty?
 
       case ver
       when Versions::Latest
-        max = stable_tags.max_by(&.version)
-        max if max.version > current
+        select_latest(stable_tags, current)
       when Versions::Minor
-        candidates = stable_tags.select { |c| c.version.major == current.major }
-        return nil if candidates.empty?
-        max = candidates.max_by(&.version)
-        max if max.version > current
+        select_within_major(stable_tags, current)
       when Versions::Patch
-        candidates = stable_tags.select { |c| c.version.major == current.major && c.version.minor == current.minor }
-        return nil if candidates.empty?
-        max = candidates.max_by(&.version)
-        max if max.version > current
+        select_within_major_minor(stable_tags, current)
       end
+    end
+
+    private def parse_and_filter_tags(tags : Array(String)) : Array(Selection)
+      tags.compact_map do |tag|
+        begin
+          v = SemanticVersion.parse(tag)
+          v.prerelease.to_s.empty? ? Selection.new(tag, v) : nil
+        rescue ArgumentError
+          Log.warn { "skipping non-semver tag '#{tag}' for repository '#{@src}'" }
+          nil
+        end
+      end
+    end
+
+    private def select_latest(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+      max = stable_tags.max_by(&.version)
+      max if max.version > current
+    end
+
+    private def select_within_major(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+      candidates = stable_tags.select { |candidate| candidate.version.major == current.major }
+      return nil if candidates.empty?
+      max = candidates.max_by(&.version)
+      max if max.version > current
+    end
+
+    private def select_within_major_minor(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+      candidates = stable_tags.select do |candidate|
+        candidate.version.major == current.major && candidate.version.minor == current.minor
+      end
+      return nil if candidates.empty?
+      max = candidates.max_by(&.version)
+      max if max.version > current
     end
 
     private struct Selection

@@ -8,10 +8,9 @@ module ReqsUp
   Log = ::Log.for(self)
 
   enum Versions
-    Latest
-    Minor
-    Major
     Patch
+    Minor
+    Latest
   end
 
   enum YAMLFormat
@@ -161,12 +160,12 @@ module ReqsUp
       io << '>'
     end
 
-    # Update requirement version, returns final version
+    # Update requirement version, returns final version and explanation
     def update(ver : Versions = Versions::Latest) : String | Nil
       Log.debug { "Updating req #{self}" }
+      current : SemanticVersion | Nil = nil
       begin
-        watermark = SemanticVersion.parse(@version.not_nil!)
-        current = watermark
+        current = SemanticVersion.parse(@version.not_nil!)
       rescue ArgumentError
         Log.debug { "#{@version} is not semver, skipping" }
         return
@@ -174,31 +173,78 @@ module ReqsUp
         Log.debug { "No version defined, skipping" }
         return
       end
+      return unless current
+
       Log.debug { "Current version: #{@version}" }
-      versions.each do |v|
-        Log.trace { "Checking version candidate: #{v}" }
-        begin
-          candidate = SemanticVersion.parse(v)
-        rescue ArgumentError
-          Log.trace { "#{v} is not semver, skipping" }
-          next
-        end
+      tags = versions
+
+      selected = select_version(tags, current, ver)
+      if selected
+        @version = selected.version.to_s
+        explanation = explain_selection(ver, current, selected.version)
+        Log.info { "#{@name || @src}: #{current} → #{@version} (#{explanation})" }
+        return @version
+      else
         case ver
+        when Versions::Patch
+          Log.warn { "no suitable versions found for '#{@name || @src}' within patch version (current: #{current})" }
+        when Versions::Minor
+          Log.warn { "no suitable versions found for '#{@name || @src}' within minor version (current: #{current})" }
         when Versions::Latest
-          if candidate > watermark
-            watermark = candidate
-            Log.trace { "Feasible candidate: #{watermark}" }
-          end
-        else
-          Log.error { "Updating to non-latest version is not implemented" }
-          return
+          return @version
+        end
+        return nil
+      end
+    end
+
+    private def select_version(tags : Array(String), current : SemanticVersion, ver : Versions) : Selection | Nil
+      stable_tags = tags.compact_map do |t|
+        begin
+          v = SemanticVersion.parse(t)
+          v.prerelease.to_s.empty? ? Selection.new(t, v) : nil
+        rescue ArgumentError
+          Log.warn { "skipping non-semver tag '#{t}' for repository '#{@src}'" }
+          nil
         end
       end
-      if watermark > current
-        @version = watermark.to_s
-        Log.info { "Updating #{@src} to #{@version}" }
+
+      return nil if stable_tags.empty?
+
+      case ver
+      when Versions::Latest
+        max = stable_tags.max_by(&.version)
+        max if max.version > current
+      when Versions::Minor
+        candidates = stable_tags.select { |c| c.version.major == current.major }
+        return nil if candidates.empty?
+        max = candidates.max_by(&.version)
+        max if max.version > current
+      when Versions::Patch
+        candidates = stable_tags.select { |c| c.version.major == current.major && c.version.minor == current.minor }
+        return nil if candidates.empty?
+        max = candidates.max_by(&.version)
+        max if max.version > current
       end
-      @version
+    end
+
+    private struct Selection
+      getter tag : String
+      getter version : SemanticVersion
+
+      def initialize(@tag, @version)
+      end
+    end
+
+    private def explain_selection(ver : Versions, current : SemanticVersion, selected : SemanticVersion) : String
+      explanation = case ver
+                    when Versions::Latest
+                      "latest"
+                    when Versions::Minor
+                      "max minor version for #{current.major}.x"
+                    when Versions::Patch
+                      "max patch version for #{current.major}.#{current.minor}.x"
+                    end
+      explanation || "unknown"
     end
   end
 

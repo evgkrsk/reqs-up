@@ -458,4 +458,165 @@ describe ReqsUp do
       end
     end
   end
+
+  describe ReqsUp::GitReq do
+    describe "#update with minor version mode" do
+      it "обновляет до максимальной minor версии" do
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v1.0.0"
+        echo "def456 refs/tags/v1.5.0"
+        echo "ghi789 refs/tags/v1.9.0"
+        echo "jkl012 refs/tags/v2.0.0"
+        echo "mno345 refs/tags/v2.1.0"
+        SCRIPT
+        File.write(git_script, script_str)
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/evgkrsk/reqs-up.git
+          version: 1.2.3
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update(ReqsUp::Versions::Minor)
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should eq("1.9.0")
+        git_req.version.should eq("1.9.0")
+      end
+
+      it "не обновляет если нет подходящих minor версий" do
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v2.0.0"
+        echo "def456 refs/tags/v2.1.0"
+        SCRIPT
+        File.write(git_script, script_str)
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/evgkrsk/reqs-up.git
+          version: 1.2.3
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update(ReqsUp::Versions::Minor)
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should be_nil
+        git_req.version.should eq("1.2.3")
+      end
+    end
+
+    describe "#update with patch version mode" do
+      it "обновляет до максимальной patch версии" do
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v1.2.0"
+        echo "def456 refs/tags/v1.2.5"
+        echo "ghi789 refs/tags/v1.2.8"
+        echo "jkl012 refs/tags/v1.2.9"
+        echo "mno345 refs/tags/v1.3.0"
+        SCRIPT
+        File.write(git_script, script_str)
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/evgkrsk/reqs-up.git
+          version: 1.2.3
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update(ReqsUp::Versions::Patch)
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should eq("1.2.9")
+        git_req.version.should eq("1.2.9")
+      end
+
+      it "не обновляет если нет подходящих patch версий" do
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v1.3.0"
+        echo "def456 refs/tags/v1.4.0"
+        SCRIPT
+        File.write(git_script, script_str)
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/evgkrsk/reqs-up.git
+          version: 1.2.3
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update(ReqsUp::Versions::Patch)
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should be_nil
+        git_req.version.should eq("1.2.3")
+      end
+    end
+
+    describe "#update with pre-release filtering" do
+      it "игнорирует pre-release версии" do
+        git_script = "spec/fixtures/git"
+        script_str = <<-SCRIPT
+        #!/bin/bash
+        echo "abc123 refs/tags/v1.0.0"
+        echo "def456 refs/tags/v1.0.0-alpha"
+        echo "ghi789 refs/tags/v1.0.0-beta.1"
+        echo "jkl012 refs/tags/v1.0.1"
+        SCRIPT
+        File.write(git_script, script_str)
+        File.chmod(git_script, 0o755)
+
+        yaml_str = <<-YAML
+        - src: https://github.com/evgkrsk/reqs-up.git
+          version: 1.0.0
+        YAML
+        yaml = YAML.parse(yaml_str)
+        git_req = ReqsUp::GitReq.new(yaml[0])
+
+        old_path = ENV["PATH"]
+        ENV["PATH"] = File.expand_path("spec/fixtures") + ":" + old_path
+
+        result = git_req.update(ReqsUp::Versions::Latest)
+
+        ENV["PATH"] = old_path
+        File.delete(git_script)
+
+        result.should eq("1.0.1")
+        git_req.version.should eq("1.0.1")
+      end
+    end
+  end
 end

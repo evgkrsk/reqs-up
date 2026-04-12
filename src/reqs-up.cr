@@ -129,9 +129,9 @@ module ReqsUp
   abstract class Req
     include YAML::Serializable
     property src : String
-    property name : String | Nil
-    property version : String | Nil
-    getter scm : String | Nil
+    property name : String?
+    property version : String?
+    getter scm : String?
     Log = ::Log.for(self)
 
     # Initialize one requirements from YAML element
@@ -161,7 +161,7 @@ module ReqsUp
     end
 
     # Update requirement version, returns final version and explanation
-    def update(ver : Versions = Versions::Latest) : String | Nil
+    def update(ver : Versions = Versions::Latest) : String?
       Log.debug { "Updating req #{self}" }
       current = parse_current_version
       return unless current
@@ -180,30 +180,28 @@ module ReqsUp
       end
     end
 
-    private def parse_current_version : SemanticVersion | Nil
+    private def parse_current_version : SemanticVersion?
       ver = @version
-      return nil unless ver
+      return unless ver
       SemanticVersion.parse(ver)
     rescue ArgumentError
       Log.debug { "#{@version} is not semver, skipping" }
-      nil
     end
 
-    private def handle_no_update(ver : Versions, current : SemanticVersion) : String | Nil
+    private def handle_no_update(ver : Versions, current : SemanticVersion) : String?
       case ver
       when Versions::Patch
         Log.warn { "no suitable versions found for '#{@name || @src}' within patch version (current: #{current})" }
       when Versions::Minor
         Log.warn { "no suitable versions found for '#{@name || @src}' within minor version (current: #{current})" }
       when Versions::Latest
-        return @version
+        @version
       end
-      nil
     end
 
-    private def select_version(tags : Array(String), current : SemanticVersion, ver : Versions) : Selection | Nil
+    private def select_version(tags : Array(String), current : SemanticVersion, ver : Versions) : Selection?
       stable_tags = parse_and_filter_tags(tags)
-      return nil if stable_tags.empty?
+      return if stable_tags.empty?
 
       case ver
       when Versions::Latest
@@ -227,23 +225,23 @@ module ReqsUp
       end
     end
 
-    private def select_latest(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+    private def select_latest(stable_tags : Array(Selection), current : SemanticVersion) : Selection?
       max = stable_tags.max_by(&.version)
       max if max.version > current
     end
 
-    private def select_within_major(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+    private def select_within_major(stable_tags : Array(Selection), current : SemanticVersion) : Selection?
       candidates = stable_tags.select { |candidate| candidate.version.major == current.major }
-      return nil if candidates.empty?
+      return if candidates.empty?
       max = candidates.max_by(&.version)
       max if max.version > current
     end
 
-    private def select_within_major_minor(stable_tags : Array(Selection), current : SemanticVersion) : Selection | Nil
+    private def select_within_major_minor(stable_tags : Array(Selection), current : SemanticVersion) : Selection?
       candidates = stable_tags.select do |candidate|
         candidate.version.major == current.major && candidate.version.minor == current.minor
       end
-      return nil if candidates.empty?
+      return if candidates.empty?
       max = candidates.max_by(&.version)
       max if max.version > current
     end

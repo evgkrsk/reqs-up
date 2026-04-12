@@ -53,3 +53,7 @@ ansible-role-3: 1.2.3 → 2.1.0 (latest)
 - `-v`, `--version` - Print version and exit
 
 Note: `--minor` and `--patch` are mutually exclusive.
+
+# Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for details.

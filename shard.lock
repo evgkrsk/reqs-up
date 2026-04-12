@@ -2,4 +2,4 @@ version: 2.0
 shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 1.7.0-dev+git.commit.8c4ff4929d2025b079026ced6df61b66dbe8ee2b
+    version: 1.6.4+git.commit.a21dea0b44642f4fc87429283f8b0dd9f1e47a9f

@@ -18,4 +18,4 @@ executables:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    branch: master
+    tag: v1.6.4

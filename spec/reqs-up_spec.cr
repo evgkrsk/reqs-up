@@ -309,11 +309,11 @@ describe ReqsUp do
     describe "парсинг полей из YAML" do
       it "извлекает src, name, version, scm" do
         yaml_str = <<-YAML
-        - name: test-role
-          src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-          scm: git
-        YAML
+          - name: test-role
+            src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+            scm: git
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         git_req.name.should eq("test-role")
@@ -324,9 +324,9 @@ describe ReqsUp do
 
       it "корректно обрабатывает отсутствие name" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         git_req.name.should be_nil
@@ -336,9 +336,9 @@ describe ReqsUp do
     describe "#versions" do
       it "возвращает пустой массив при отсутствии git" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         # Тест предполагает что git есть в системе, но для мокирования
@@ -350,9 +350,9 @@ describe ReqsUp do
     describe "#update" do
       it "возвращает nil для не-semver версии" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: not-a-version
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: not-a-version
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         result = git_req.update
@@ -361,8 +361,8 @@ describe ReqsUp do
 
       it "возвращает nil при отсутствии версии" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         result = git_req.update
@@ -371,9 +371,9 @@ describe ReqsUp do
 
       it "возвращает текущую версию если нет новых версий" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
         # Метод versions будет вызван, но так как мы не мокаем git,
@@ -388,11 +388,11 @@ describe ReqsUp do
     describe "#to_s" do
       it "возвращает строковое представление объекта" do
         yaml_str = <<-YAML
-        - name: test-role
-          src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-          scm: git
-        YAML
+          - name: test-role
+            src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+            scm: git
+          YAML
         yaml = YAML.parse(yaml_str)
         req = ReqsUp::GitReq.new(yaml[0])
         req.to_s.should contain("GitReq")
@@ -408,20 +408,20 @@ describe ReqsUp do
       it "обновляет версию когда есть более новая" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v0.9.0"
-        echo "def456 refs/tags/v1.0.0"
-        echo "ghi789 refs/tags/v1.1.0"
-        echo "jkl012 refs/tags/v1.2.0"
-        echo "mno345 refs/tags/v2.0.0"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v0.9.0"
+          echo "def456 refs/tags/v1.0.0"
+          echo "ghi789 refs/tags/v1.1.0"
+          echo "jkl012 refs/tags/v1.2.0"
+          echo "mno345 refs/tags/v2.0.0"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -441,9 +441,9 @@ describe ReqsUp do
     describe "обработка ошибок git" do
       it "возвращает пустой массив когда git не найден" do
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -464,20 +464,20 @@ describe ReqsUp do
       it "обновляет до максимальной minor версии" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v1.0.0"
-        echo "def456 refs/tags/v1.5.0"
-        echo "ghi789 refs/tags/v1.9.0"
-        echo "jkl012 refs/tags/v2.0.0"
-        echo "mno345 refs/tags/v2.1.0"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v1.0.0"
+          echo "def456 refs/tags/v1.5.0"
+          echo "ghi789 refs/tags/v1.9.0"
+          echo "jkl012 refs/tags/v2.0.0"
+          echo "mno345 refs/tags/v2.1.0"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -496,17 +496,17 @@ describe ReqsUp do
       it "не обновляет если нет подходящих minor версий" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v2.0.0"
-        echo "def456 refs/tags/v2.1.0"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v2.0.0"
+          echo "def456 refs/tags/v2.1.0"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -527,20 +527,20 @@ describe ReqsUp do
       it "обновляет до максимальной patch версии" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v1.2.0"
-        echo "def456 refs/tags/v1.2.5"
-        echo "ghi789 refs/tags/v1.2.8"
-        echo "jkl012 refs/tags/v1.2.9"
-        echo "mno345 refs/tags/v1.3.0"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v1.2.0"
+          echo "def456 refs/tags/v1.2.5"
+          echo "ghi789 refs/tags/v1.2.8"
+          echo "jkl012 refs/tags/v1.2.9"
+          echo "mno345 refs/tags/v1.3.0"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -559,17 +559,17 @@ describe ReqsUp do
       it "не обновляет если нет подходящих patch версий" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v1.3.0"
-        echo "def456 refs/tags/v1.4.0"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v1.3.0"
+          echo "def456 refs/tags/v1.4.0"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.2.3
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.2.3
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 
@@ -590,19 +590,19 @@ describe ReqsUp do
       it "игнорирует pre-release версии" do
         git_script = "spec/fixtures/git"
         script_str = <<-SCRIPT
-        #!/bin/bash
-        echo "abc123 refs/tags/v1.0.0"
-        echo "def456 refs/tags/v1.0.0-alpha"
-        echo "ghi789 refs/tags/v1.0.0-beta.1"
-        echo "jkl012 refs/tags/v1.0.1"
-        SCRIPT
+          #!/bin/bash
+          echo "abc123 refs/tags/v1.0.0"
+          echo "def456 refs/tags/v1.0.0-alpha"
+          echo "ghi789 refs/tags/v1.0.0-beta.1"
+          echo "jkl012 refs/tags/v1.0.1"
+          SCRIPT
         File.write(git_script, script_str)
         File.chmod(git_script, 0o755)
 
         yaml_str = <<-YAML
-        - src: https://github.com/evgkrsk/reqs-up.git
-          version: 1.0.0
-        YAML
+          - src: https://github.com/evgkrsk/reqs-up.git
+            version: 1.0.0
+          YAML
         yaml = YAML.parse(yaml_str)
         git_req = ReqsUp::GitReq.new(yaml[0])
 

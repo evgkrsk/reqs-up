@@ -24,12 +24,14 @@ describe "main.cr CLI" do
   describe "опция --dry-run" do
     it "выводит результат в stdout вместо записи в файл" do
       test_file = "spec/fixtures/requirements_dryrun.yml"
-      File.write(test_file, "---
-- name: test
-  src: https://github.com/evgkrsk/reqs-up.git
-  version: 1.0.0
-  scm: git
-")
+      yaml = <<-YAML
+  ---
+  - name: test
+    src: https://github.com/evgkrsk/reqs-up.git
+    version: 1.0.0
+    scm: git
+  YAML
+      File.write(test_file, yaml)
       output = `crystal run src/main.cr -- --dry-run --file #{test_file} 2>&1`
       $?.success?.should be_true
       output.should contain("---")
@@ -41,12 +43,14 @@ describe "main.cr CLI" do
   describe "опция --file" do
     it "использует указанный файл вместо requirements.yml" do
       test_file = "spec/fixtures/requirements_custom.yml"
-      File.write(test_file, "---
-- name: custom
-  src: https://github.com/evgkrsk/reqs-up.git
-  version: 1.0.0
-  scm: git
-")
+      yaml = <<-YAML
+  ---
+  - name: custom
+    src: https://github.com/evgkrsk/reqs-up.git
+    version: 1.0.0
+    scm: git
+  YAML
+      File.write(test_file, yaml)
       output = `crystal run src/main.cr -- --dry-run --file #{test_file} 2>&1`
       $?.success?.should be_true
       output.should contain("custom")

@@ -8,7 +8,7 @@ on:
 jobs:
   build-linux-static:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     container:
       image: crystallang/crystal:latest-alpine
@@ -48,7 +48,7 @@ jobs:
 
   release:
     needs: [build-linux-static, build-macos]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Download artifacts
       uses: actions/download-artifact@v8

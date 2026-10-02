@@ -16,10 +16,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
+    - name: Force apt update (Linux only)
+      if: ${{ runner.os == 'Linux' }}
+      run: sudo -n apt-get update
     - uses: actions/checkout@v7
     - uses: crystal-lang/install-crystal@v1
     - name: Cache shards
